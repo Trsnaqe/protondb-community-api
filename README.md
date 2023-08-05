@@ -33,6 +33,9 @@ git clone https://github.com/trsnaqe/protondb-community-api.git
 2. Install MongoDB on your system and set up a local MongoDB database.
 
 3. Create a `.env` file in the root directory of the project and set the MongoDB connection URI:
+```bash
+DB_URI=mongodb://localhost:27017/protondb
+```
 
 4. Open a terminal or command prompt and navigate to the project's directory.
 

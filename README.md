@@ -1,5 +1,7 @@
 # ProtonDB Community API
+
 API for developers seeking to leverage data from ProtonDB.
+
 #### http://protondb.solidet.com/
 
 ## Introduction
@@ -33,6 +35,7 @@ git clone https://github.com/trsnaqe/protondb-community-api.git
 2. Install MongoDB on your system and set up a local MongoDB database.
 
 3. Create a `.env` file in the root directory of the project and set the MongoDB connection URI:
+
 ```bash
 DB_URI=mongodb://localhost:27017/protondb
 ```
@@ -48,10 +51,9 @@ The API will now be up and running, and you can start making requests to the ava
 - `/api/games (GET)`: Get all games. [Disabled: The dataset is large and costs a lot to leave this endpoint open.]
 
 - `/api/games/{gameId} (GET)`: Get a game by gameId.
+- `/api/games/{gameId}/summary (GET)`: Get tiers by gameId, fetched from ProtonDB directly.
 
 - `/api/reports (GET)`: Retrieve reports; add `?versioned=true` for versioned data. [Disabled: The dataset is large and costs a lot to leave this endpoint open.]
-
-- `/api/reports/{gameId}/summary (GET)`: Get tiers by gameId, fetched from ProtonDB directly.
 
 - `/api/reports/{gameId} (GET)`: Get reports by gameId; add `?versioned=true` for versioned data.
 

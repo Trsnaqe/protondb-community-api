@@ -8,8 +8,8 @@ func ListAPIEndpointsHandler(w http.ResponseWriter, r *http.Request) {
 	endpoints := []string{
 		"/api/games (GET): Get all games*",
 		"/api/games/{gameId} (GET): Get a game by gameId",
+		"/api/games/{gameId}/summary (GET): Get tiers by gameId, fetched from protondb directly",
 		"/api/reports (GET): Retrieve reports, add ?versioned=true for versioned data*",
-		"/api/reports/{gameId}/summary (GET): Get tiers by gameId, fetched from protondb directly",
 		"/api/reports/{gameId} (GET): Get reports by gameId, add ?versioned=true for versioned data",
 		"/api/stats (GET): Get stats of the API",
 	}

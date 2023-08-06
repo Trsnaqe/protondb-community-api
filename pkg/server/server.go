@@ -14,7 +14,7 @@ type Server struct {
 
 func NewServer() *Server {
 	server := &Server{
-		router: mux.NewRouter(),
+		router: mux.NewRouter().StrictSlash(true),
 	}
 
 	api.SetupRoutes(server.router)

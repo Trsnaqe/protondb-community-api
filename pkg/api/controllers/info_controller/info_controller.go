@@ -21,6 +21,8 @@ func ListAPIEndpointsHandler(w http.ResponseWriter, r *http.Request) {
 
 	response += "\n*Had to disable the /api/games and /api/reports endpoints because the dataset is large and it costs a lot to leave those endpoints open. I want to enable them again in the future, but I need to find support to help me host this.\n\n"
 
+	response += "As of 04/09/2023 I had to disable the deployment and replaced it with a sample database due to budget reasons; please see github for further information. \n\n"
+	
 	openSourceLink := "You can find the source code for this project on GitHub:\nhttps://github.com/Trsnaqe/protondb-community-api\n\n"
 
 	supportMessage := "If you find this service useful and would like to support the project, consider buying me a coffee. Your support helps cover server costs and keeps this service running:\nhttps://www.buymeacoffee.com/trsnaqe\n\n"

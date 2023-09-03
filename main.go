@@ -11,7 +11,7 @@ import (
 	"github.com/trsnaqe/protondb-api/pkg/storage"
 )
 
-var updateInterval = 24 * 30 * time.Hour // Change this to your desired update interval
+var updateInterval = 0 * 30 * time.Hour // Change this to your desired update interval
 
 func main() {
 	if os.Getenv("PORT") == "" {

@@ -1,8 +1,8 @@
 # ProtonDB Community API
 
 API for developers seeking to leverage data from ProtonDB.
-
-#### http://protondb.solidet.com/
+##### Note:This is an deployment with sample data
+https://protondb-community-api-04f42bc1742f.herokuapp.com/
 
 ## Introduction
 
@@ -37,7 +37,7 @@ git clone https://github.com/trsnaqe/protondb-community-api.git
 3. Create a `.env` file in the root directory of the project and set the MongoDB connection URI:
 
 ```bash
-DB_URI=mongodb://localhost:27017/protondb
+DB_URI=mongodb+srv://<username>:<password>@cluster0.xyz.mongodb.net/?retryWrites=true&w=majority
 ```
 
 4. Open a terminal or command prompt and navigate to the project's directory.
@@ -85,3 +85,34 @@ For questions or support, you can reach out via the following channels:
 - [Buy Me a Coffee](https://www.buymeacoffee.com/trsnaqe)
 
 We appreciate your contribution and look forward to making the ProtonDB Community API even better together!
+
+### Important Update
+
+As of 04/09/2023 I had to terminate the deployment due to budget reasons, as API wasn't getting enough traffic to justify its deployment cost. This service is ready to deploy and it can be used locally; 
+
+### How to Host
+
+1. Clone the repository to your local machine:
+
+```bash
+git clone https://github.com/trsnaqe/protondb-community-api.git
+```
+
+2. Install MongoDB on your system and set up a local MongoDB database.
+
+3. Create a `.env` file in the root directory of the project and set the MongoDB connection URI:
+
+```bash
+DB_URI=mongodb+srv://<username>:<password>@cluster0.xyz.mongodb.net/?retryWrites=true&w=majority
+```
+4. Download database backup. (It contains everything up to August 3th of 2023)
+
+https://drive.google.com/file/d/1tE8T7TRjxYlZpw2qKaKWv9NneR6m7dP8/view?usp=sharing
+
+5. Open a terminal or command prompt and navigate to the Downloaded file's directory.
+
+6. Run the below command
+
+```bash
+sudo mongorestore -db --uri "mongodb+srv://<url>&w=majority" --dir .
+```

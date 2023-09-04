@@ -115,5 +115,3 @@ https://drive.google.com/file/d/1tE8T7TRjxYlZpw2qKaKWv9NneR6m7dP8/view?usp=shari
 ```bash
 sudo mongorestore -db --uri "mongodb+srv://<url>&w=majority" --dir .
 ```
-
-The API will now be up and running, and you can start making requests to the available endpoints. Ensure that MongoDB is running and accessible via the connection URI specified in the `.env` file.

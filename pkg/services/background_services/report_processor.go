@@ -68,7 +68,7 @@ func processReport(report interface{}, appID, title, version string) error {
 		}
 	}
 
-	err = reports_service.CreateNewReport(reportMap, game, version) // Pass "v1" or "v2" as the ReportVersion
+	err = reports_service.CreateNewReport(reportMap, game, version)
 	if err != nil {
 		return err
 	}

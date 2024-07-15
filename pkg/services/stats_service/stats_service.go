@@ -30,10 +30,8 @@ func GetStats() (map[string]interface{}, error) {
 
 	updateInterval := background_services.GetUpdateInterval()
 
-	// Calculate the time remaining for the next update
 	timeRemaining := background_services.TimeRemainingForNextUpdate(updateInterval)
 
-	// Convert the time remaining into a human-readable format
 	totalTimeRemainingStr := background_services.TimeInDaysFormat(timeRemaining)
 
 	stats := map[string]interface{}{

@@ -13,6 +13,6 @@ func NewGame(appID string, title *string) *Game {
 	return &Game{
 		AppID:   appID,
 		Title:   title,
-		Reports: []primitive.ObjectID{}, // initialize with an empty slice
+		Reports: []primitive.ObjectID{},
 	}
 }

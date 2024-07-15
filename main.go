@@ -27,7 +27,7 @@ func main() {
 	}
 	background_services.SetUpdateInterval(updateInterval)
 	if updateInterval > 0 { // Don't start the goroutine if updateInterval is zero
-		go background_services.ProcessReportsBackground(updateInterval) // Pass the update interval to the background process
+		go background_services.ProcessReportsBackground(updateInterval)
 	}
 	defer storage.CloseDB()
 	port := os.Getenv("PORT")

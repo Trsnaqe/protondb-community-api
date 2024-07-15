@@ -11,6 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func CreateReport(report *models.Report, game *models.Game) (*models.Report, error) {
@@ -64,11 +65,12 @@ func UpdateReport(report *models.Report) error {
 	return err
 }
 
-func GetReportsByGameID(gameID string) ([]models.Report, error) {
+func GetReportsByGameID(gameID string, version string) ([]models.Report, error) {
 	if gameID == "" {
 		log.Println("Error: empty gameID provided")
 		return nil, errors.New("empty gameID provided")
 	}
+
 	game, err := GetGameByAppIDWithReports(gameID)
 	if err != nil {
 		log.Println("Error getting game by AppID:", err)
@@ -81,6 +83,11 @@ func GetReportsByGameID(gameID string) ([]models.Report, error) {
 	}
 
 	reportsFilter := bson.M{"_id": bson.M{"$in": game.Reports}}
+
+	if version == "V1" || version == "V2" {
+		reportsFilter["report_version"] = version
+	}
+
 	var reports []models.Report
 	cursor, err := reportsCollection.Find(context.Background(), reportsFilter)
 	if err != nil {
@@ -153,15 +160,11 @@ func CompareReport(report models.ReportFormatV2) bool {
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			// No document was found
 			return false
 		}
-		// Log error and return false
 		log.Printf("Could not perform find operation: %v", err)
 		return false
 	}
-
-	// Document was found
 	return true
 }
 func CountV2Reports() (int64, error) {
@@ -172,4 +175,47 @@ func CountV2Reports() (int64, error) {
 		return 0, err
 	}
 	return count, nil
+}
+
+// search game by title and get its reports
+func GetReportsOfMatchedGamesByTitle(title string, versioned bool, version string) (*mongo.Cursor, error) {
+	filter := bson.M{"title": bson.M{"$regex": title, "$options": "i"}}
+	cursor, err := gamesCollection.Find(context.Background(), filter)
+	if err != nil {
+		return nil, err
+	}
+
+	var matchedGames []models.Game
+	for cursor.Next(context.Background()) {
+		var game models.Game
+		if err := cursor.Decode(&game); err != nil {
+			log.Printf("Error decoding game: %v", err)
+			continue
+		}
+		matchedGames = append(matchedGames, game)
+	}
+
+	cursor.Close(context.Background())
+
+	var gameIDs []primitive.ObjectID
+	for _, game := range matchedGames {
+		gameIDs = append(gameIDs, game.ID)
+	}
+
+	reportsFilter := bson.M{
+		"_id": bson.M{"$in": gameIDs},
+	}
+
+	if version == "V1" || version == "V2" {
+		reportsFilter["report_version"] = version
+	}
+
+	options := options.Find().SetProjection(bson.M{"reports": 1}) // Adjust projection as needed
+
+	reportsCursor, err := reportsCollection.Find(context.Background(), reportsFilter, options)
+	if err != nil {
+		return nil, err
+	}
+
+	return reportsCursor, nil
 }

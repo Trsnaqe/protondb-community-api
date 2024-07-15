@@ -9,13 +9,15 @@ import (
 )
 
 func SetupRoutes(r *mux.Router) {
-	// Define routes
 	r.HandleFunc("/", infoCtrl.ListAPIEndpointsHandler).Methods("GET")
 	r.HandleFunc("/api", infoCtrl.ListAPIEndpointsHandler).Methods("GET")
 	r.HandleFunc("/api/games", gamesCtrl.GetAllGamesHandler).Methods("GET")
-	r.HandleFunc("/api/games/{gameId}", gamesCtrl.GetGameByIDHandler).Methods("GET")
+	r.HandleFunc("/api/games/{gameId}", gamesCtrl.GetGameByAppIDHandler).Methods("GET")
 	r.HandleFunc("/api/games/{gameId}/summary", gamesCtrl.GetGameSummaryHandler).Methods("GET")
 	r.HandleFunc("/api/reports", reportsCtrl.GetReportsHandler).Methods("GET")
 	r.HandleFunc("/api/reports/{gameId}", reportsCtrl.GetReportsByGameIDHandler).Methods("GET")
 	r.HandleFunc("/api/stats", statsCtrl.StatsHandler).Methods("GET")
+
+	r.HandleFunc("/api/v2/games", gamesCtrl.GetGameByQueryHandler).Methods("GET")
+	r.HandleFunc("/api/v2/reports", reportsCtrl.GetReportsByQueryHandler).Methods("GET")
 }

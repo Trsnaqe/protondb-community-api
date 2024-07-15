@@ -65,7 +65,6 @@ func GetLatestProcessedReportFile(lastProcessedFile string) ([]byte, string, str
 		return nil, lastProcessedFile, "", fmt.Errorf("failed to download file. Status code: %d", resp.StatusCode)
 	}
 
-	// Create a temporary file to save the downloaded .tar.gz file
 	tempFile, err := ioutil.TempFile("", "report")
 	if err != nil {
 		log.Println("Error creating temporary file:", err)
@@ -73,34 +72,29 @@ func GetLatestProcessedReportFile(lastProcessedFile string) ([]byte, string, str
 	}
 	defer tempFile.Close()
 
-	// Save the downloaded .tar.gz file to the temporary file
 	_, err = io.Copy(tempFile, resp.Body)
 	if err != nil {
 		log.Println("Error saving downloaded file:", err)
 		return nil, lastProcessedFile, "", err
 	}
 
-	// Extract the .tar.gz file
 	extractedDir, err := extractTarGz(tempFile.Name())
 	if err != nil {
 		log.Println("Error extracting .tar.gz file:", err)
 		return nil, lastProcessedFile, "", err
 	}
 
-	// Remove the .tar.gz file after extraction
 	err = os.Remove(tempFile.Name())
 	if err != nil {
 		log.Println("Error removing .tar.gz file:", err)
 	}
 
-	// Find the JSON file within the extracted directory
 	jsonFilePath, err := findJSONFile(extractedDir)
 	if err != nil {
 		log.Println("Error finding JSON file:", err)
 		return nil, lastProcessedFile, extractedDir, err
 	}
 
-	// Read the JSON file contents
 	jsonData, err := ioutil.ReadFile(jsonFilePath)
 	if err != nil {
 		log.Println("Error reading JSON file:", err)
@@ -127,63 +121,55 @@ func getFileList(latestProcessedFile string) ([]string, error) {
 		}
 	}
 
-	// Sort the file list by month and year
 	sort.Slice(fileList, func(i, j int) bool {
 		return compareFiles(fileList[i], fileList[j])
 	})
 
 	novFile := "reports/reports_nov1_2019.tar.gz"
 
-	// If latestProcessedFile is older than nov1_2019, return nov1_2019
+	// If latestProcessedFile is older than nov1_2019, return nov1_2019 as it includes the old reports
 	if compareFiles(latestProcessedFile, novFile) {
 		return []string{novFile}, nil
 	}
 
-	// If latestProcessedFile is not older than nov1_2019, return the newest file
+	// If latestProcessedFile is not older than nov1_2019, return the newest file as it already includes reports in-between
 	newestFile := fileList[len(fileList)-1]
 	return []string{newestFile}, nil
 }
 
 // extractTarGz extracts the .tar.gz archive and returns the path to the extracted directory
 func extractTarGz(tarGzFile string) (string, error) {
-	// Open the .tar.gz file for reading
 	file, err := os.Open(tarGzFile)
 	if err != nil {
 		return "", err
 	}
 	defer file.Close()
 
-	// Create a gzip reader
 	gzReader, err := gzip.NewReader(file)
 	if err != nil {
 		return "", err
 	}
 	defer gzReader.Close()
 
-	// Create a tar reader
 	tarReader := tar.NewReader(gzReader)
 
-	// Create a temporary directory for extraction
 	extractedDir, err := ioutil.TempDir("", "extracted")
 	if err != nil {
 		return "", err
 	}
 
-	// Extract each file in the .tar.gz archive
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
-			break // Reached the end of the archive
+			break
 		}
 		if err != nil {
 			log.Println("Error reading tar entry:", err)
 			continue // Skip this entry and continue with the next one
 		}
 
-		// Determine the file path for extraction
 		targetPath := filepath.Join(extractedDir, header.Name)
 
-		// Create directories as needed
 		if header.Typeflag == tar.TypeDir {
 			err := os.MkdirAll(targetPath, 0755)
 			if err != nil {
@@ -192,7 +178,6 @@ func extractTarGz(tarGzFile string) (string, error) {
 			continue
 		}
 
-		// Create the file and write its contents
 		file, err := os.Create(targetPath)
 		if err != nil {
 			log.Println("Error creating file:", err)
@@ -200,7 +185,7 @@ func extractTarGz(tarGzFile string) (string, error) {
 		}
 
 		_, err = io.Copy(file, tarReader)
-		file.Close() // Close the file after copying
+		file.Close()
 
 		if err != nil {
 			log.Println("Error writing file:", err)

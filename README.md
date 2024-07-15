@@ -59,6 +59,10 @@ The API will now be up and running, and you can start making requests to the ava
 
 - `/api/stats (GET)`: Get stats of the API. This endpoint provides information about API usage, response times, and the time remaining for the next automatic data update.
 
+- `/api/v2/games`: Get games endpoint. Supports query in v2. If no query is present gets all the games. Query options: [gameid|game_id|appid|app_id] to get game with id. [title] to search game by title.  If both are present, appid supersedes.
+
+- `/api/v2/reports`: Get reports endpoint. Supports query in v2. If no query is present gets all the reports. Query options: [gameid|game_id|appid|app_id] to get game with id. [title] to search game by title.  If both are present, appid supersedes. [versioned] to get the reports with metadata. [version] 1 or 2 to filter by report versions.
+
 ## Contributing
 
 We welcome contributions to the project! Whether you want to report issues, submit feature requests, or make pull requests, your input is valuable in improving the Linux gaming experience. Please refer to our [CONTRIBUTING.md](CONTRIBUTING.md) file for guidelines on how to contribute.

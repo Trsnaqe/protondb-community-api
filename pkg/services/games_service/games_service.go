@@ -1,83 +1,108 @@
 package games_service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/trsnaqe/protondb-api/pkg/models"
 	"github.com/trsnaqe/protondb-api/pkg/storage"
 )
 
-func GetAllGamesHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
+func GetAllGames() ([]models.Game, error) {
 	cursor, err := storage.GetAllGames()
 	if err != nil {
-		http.Error(w, "Failed to retrieve games", http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	defer cursor.Close(r.Context())
+	defer cursor.Close(nil)
 
-	encoder := json.NewEncoder(w)
-	w.Write([]byte("["))
-
-	first := true
-	var game models.Game
-	for cursor.Next(r.Context()) {
+	var games []models.Game
+	for cursor.Next(nil) {
+		var game models.Game
 		if err := cursor.Decode(&game); err != nil {
-			http.Error(w, "Failed to decode game", http.StatusInternalServerError)
-			return
+			return nil, err
 		}
-
-		if !first {
-			w.Write([]byte(","))
-		}
-		first = false
-
-		if err := encoder.Encode(game); err != nil {
-			http.Error(w, "Failed to encode game", http.StatusInternalServerError)
-			return
-		}
+		games = append(games, game)
 	}
 
-	w.Write([]byte("]"))
+	return games, nil
 }
 
-func GetGameByIDHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func SearchGameByTitle(title string) ([]models.Game, error) {
+	cursor, err := storage.SearchGameByTitle(title)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(nil)
 
-	params := mux.Vars(r)
-	gameID := params["gameId"]
+	var games []models.Game
+	for cursor.Next(nil) {
+		var game models.Game
+		if err := cursor.Decode(&game); err != nil {
+			return nil, err
+		}
+		games = append(games, game)
+	}
 
-	// Get the game by its ID
+	return games, nil
+}
+
+func GetGameByAppID(gameID string) (*models.Game, error) {
 	game, err := storage.GetGameByAppID(gameID)
 	if err != nil {
-		if err.Error() == "game not found" {
-			http.Error(w, "Game not found", http.StatusNotFound)
-			return
+		return nil, err
+	}
+	return game, nil
+}
+
+func GetGameByQuery(appId string, title string) ([]models.Game, error) {
+	ctx := context.TODO()
+
+	if appId != "" {
+		appId = strings.ToLower(appId)
+		game, err := storage.GetGameByAppID(appId)
+		if err == nil {
+			return []models.Game{*game}, nil
 		}
-		http.Error(w, "Failed to retrieve game", http.StatusInternalServerError)
-		return
+		return nil, fmt.Errorf("no game found with appId: %s", appId)
 	}
 
-	json.NewEncoder(w).Encode(game)
-}
+	if title != "" {
+		title = strings.ToLower(title)
+		if len(title) < 5 {
+			return nil, fmt.Errorf("title parameter must be at least 5 characters long")
+		}
+		cursor, err := storage.SearchGameByTitle(title)
+		if err != nil {
+			return nil, err
+		}
+		defer cursor.Close(ctx)
 
+		var games []models.Game
+		for cursor.Next(ctx) {
+			var game models.Game
+			if err := cursor.Decode(&game); err != nil {
+				return nil, err
+			}
+			games = append(games, game)
+		}
+		if err := cursor.Err(); err != nil {
+			return nil, err
+		}
+		return games, nil
+	}
+
+	return nil, fmt.Errorf("no valid query parameters provided")
+}
 func AddReportToGame(game *models.Game, report *models.Report) error {
-	err := storage.InsertReport(game, report.ID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return storage.InsertReport(game, report.ID)
 }
 
-// GetGameSummary returns the game summary data for the given appId.
 func GetGameSummary(appID string) (*models.GameSummary, error) {
 	apiURL := fmt.Sprintf("https://www.protondb.com/api/v1/reports/summaries/%s.json", appID)
-	// Make the HTTP GET request to the API
 	resp, err := http.Get(apiURL)
 	if err != nil {
 		return nil, err
@@ -88,7 +113,6 @@ func GetGameSummary(appID string) (*models.GameSummary, error) {
 		return nil, fmt.Errorf("failed to fetch game summary. Status code: %d", resp.StatusCode)
 	}
 
-	// Decode the JSON response into the GameSummary struct
 	var summary models.GameSummary
 	err = json.NewDecoder(resp.Body).Decode(&summary)
 	if err != nil {
@@ -97,6 +121,7 @@ func GetGameSummary(appID string) (*models.GameSummary, error) {
 
 	return &summary, nil
 }
+
 func GetOrCreateGame(appID string, title *string) (*models.Game, error) {
 	game, err := storage.GetGameByAppID(appID)
 	if err != nil {
@@ -116,11 +141,11 @@ func GetOrCreateGame(appID string, title *string) (*models.Game, error) {
 
 	return game, nil
 }
+
 func UpdateGameTitle(game *models.Game, title *string) error {
 	if game.Title == nil || *game.Title != *title {
 		game.Title = title
 
-		// Dereference the pointer and pass the string value to ChangeTitle
 		err := storage.ChangeTitle(game.ID, *title)
 		if err != nil {
 			log.Println("Error updating game:", err)

@@ -42,7 +42,6 @@ func ProcessReportsBackground(updateInterval time.Duration) {
 				log.Fatal(err)
 			}
 
-			// Remove the directory after processing
 			err = os.RemoveAll(extractedDir)
 			if err != nil {
 				log.Println("Error removing directory:", err)
@@ -55,13 +54,11 @@ func ProcessReportsBackground(updateInterval time.Duration) {
 			if err != nil {
 				log.Fatalf("Failed to update process status: %v", err)
 			}
-			// Update the last tick time
+
 			SetLastTickTime(time.Now())
 
 		}
 		if processStatus.LastProcessedFile == newLastProcessedFile {
-
-			// Update the last tick time
 			SetLastTickTime(time.Now())
 		}
 

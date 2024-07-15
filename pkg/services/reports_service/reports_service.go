@@ -1,90 +1,75 @@
 package reports_service
 
 import (
-	"encoding/json"
-	"fmt"
 	"log"
-	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/trsnaqe/protondb-api/pkg/models"
 	"github.com/trsnaqe/protondb-api/pkg/services/games_service"
 	"github.com/trsnaqe/protondb-api/pkg/storage"
 )
 
-func GetStreamOfReports(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
+func GetReports(versioned bool) ([]interface{}, error) {
 	cursor, err := storage.GetAllReports()
 	if err != nil {
-		http.Error(w, "Failed to retrieve reports", http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	defer cursor.Close(r.Context())
+	defer cursor.Close(nil)
 
-	encoder := json.NewEncoder(w)
-	w.Write([]byte("[")) // Start of JSON array
-
-	first := true
-	var report models.Report
-	for cursor.Next(r.Context()) {
+	var reports []interface{}
+	for cursor.Next(nil) {
+		var report models.Report
 		if err := cursor.Decode(&report); err != nil {
-			http.Error(w, "Failed to decode report", http.StatusInternalServerError)
-			return
+			return nil, err
 		}
 
-		if !first {
-			w.Write([]byte(",")) // Add a comma before each report, except the first one
-		}
-		first = false
-
-		// Check if versioned is required
-		versioned := r.URL.Query().Get("versioned")
-		if versioned == "true" || versioned == "1" {
-			// If it does, encode the entire report
-			if err := encoder.Encode(report); err != nil {
-				http.Error(w, "Failed to encode report", http.StatusInternalServerError)
-				return
-			}
+		if versioned {
+			reports = append(reports, report)
 		} else {
-			// If it does not, encode only the "Data" part of the report
-			if err := encoder.Encode(report.Data); err != nil {
-				http.Error(w, "Failed to encode report data", http.StatusInternalServerError)
-				return
-			}
+			reports = append(reports, report.Data)
 		}
 	}
 
-	w.Write([]byte("]")) // End of JSON array
+	return reports, nil
 }
 
-func GetReportsByGameIDHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	params := mux.Vars(r)
-	gameID := params["gameId"]
-
-	reports, err := storage.GetReportsByGameID(gameID)
+func GetReportsByGameID(gameID string, versioned bool, version string) ([]interface{}, error) {
+	reports, err := storage.GetReportsByGameID(gameID, version)
 	if err != nil {
-		if err.Error() == "game not found" {
-			http.Error(w, "Game not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, fmt.Sprintf("Failed to retrieve reports: %v", err), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-
-	versioned := r.URL.Query().Get("versioned")
-	if versioned == "true" || versioned == "1" {
-		json.NewEncoder(w).Encode(reports)
+	var data []interface{}
+	if versioned {
+		for _, report := range reports {
+			data = append(data, report)
+		}
 	} else {
-		var data []interface{}
 		for _, report := range reports {
 			data = append(data, report.Data)
 		}
-		json.NewEncoder(w).Encode(data)
 	}
+
+	return data, nil
 }
+
+// search by title and get its reports with versioned version etc
+func GetReportsByTitleSearch(title string, versioned bool, version string) ([]interface{}, error) {
+	games, err := games_service.SearchGameByTitle(title)
+	if err != nil {
+		return nil, err
+	}
+
+	var reports []interface{}
+	for _, game := range games {
+		gameReports, err := GetReportsByGameID(game.AppID, versioned, version)
+		if err != nil {
+			return nil, err
+		}
+		reports = append(reports, gameReports...)
+	}
+
+	return reports, nil
+}
+
 func CreateNewReport(report map[string]interface{}, game *models.Game, reportVersion string) error {
 	newReport := &models.Report{
 		Data:          report,

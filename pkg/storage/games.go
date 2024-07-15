@@ -122,14 +122,12 @@ func DeleteGame(gameID string) error {
 func InsertReport(game *models.Game, reportID primitive.ObjectID) error {
 	filter := bson.M{"_id": game.ID}
 
-	// First check if reports field is null and if so, initialize it with an empty array
 	checkUpdate := bson.M{"$setOnInsert": bson.M{"reports": bson.A{}}}
 	_, err := gamesCollection.UpdateOne(context.Background(), filter, checkUpdate, options.Update().SetUpsert(true))
 	if err != nil {
 		return err
 	}
 
-	// Now push the report to the reports array
 	update := bson.M{"$push": bson.M{"reports": reportID}}
 	_, err = gamesCollection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
@@ -147,4 +145,24 @@ func ChangeTitle(gameID primitive.ObjectID, newTitle string) error {
 		return err
 	}
 	return nil
+}
+
+// search game bby titles
+func SearchGameByTitle(title string) (*mongo.Cursor, error) {
+	filter := bson.M{"title": bson.M{"$regex": title, "$options": "i"}}
+	cursor, err := gamesCollection.Find(context.Background(), filter)
+	return cursor, err
+}
+
+func GetGameByTitle(title string) (*models.Game, error) {
+	filter := bson.M{"title": title}
+	var game models.Game
+	err := gamesCollection.FindOne(context.Background(), filter).Decode(&game)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &game, nil
 }

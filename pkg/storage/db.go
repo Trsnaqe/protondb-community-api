@@ -36,6 +36,12 @@ func ConnectDB() error {
 	reportsCollection = client.Database("protondb_reports").Collection("reports")
 	processStatusCollection = client.Database("protondb_reports").Collection("process_status")
 
+	// Ensure the index on the title field
+	if err := ensureTitleIndex(); err != nil {
+		log.Printf("Error creating index: %v", err)
+		return err
+	}
+
 	return nil
 }
 
@@ -46,4 +52,15 @@ func CloseDB() {
 			log.Printf("Error closing the database connection: %v", err)
 		}
 	}
+}
+
+// ensureTitleIndex creates an index on the title field of the games collection if it doesn't exist
+func ensureTitleIndex() error {
+	indexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "title", Value: "text"}},
+		Options: options.Index().SetUnique(false),
+	}
+
+	_, err := gamesCollection.Indexes().CreateOne(context.TODO(), indexModel)
+	return err
 }

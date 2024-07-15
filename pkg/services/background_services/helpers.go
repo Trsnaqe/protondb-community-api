@@ -16,7 +16,6 @@ func isScientificNotation(str string) bool {
 }
 
 // compareFiles compares two file names based on month and year
-// compareFiles compares two file names based on month and year
 func compareFiles(file1, file2 string) bool {
 	date1, err := dateFromFile(file1)
 	if err != nil {
@@ -39,13 +38,11 @@ func dateFromFile(file string) (time.Time, error) {
 	datePattern := `[a-zA-Z]{3}\d{1,2}_\d{4}`
 	regex := regexp.MustCompile(datePattern)
 
-	// Find the date part in the file name using the regular expression
 	dateString := regex.FindString(file)
 	if dateString == "" {
 		return time.Time{}, fmt.Errorf("invalid file name format: no date found")
 	}
 
-	// Parse the date using the known format
 	t, err := time.Parse("Jan2_2006", dateString)
 	if err != nil {
 		return time.Time{}, err

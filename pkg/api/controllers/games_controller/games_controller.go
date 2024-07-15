@@ -127,11 +127,8 @@ func GetGameByQueryHandler(w http.ResponseWriter, r *http.Request) {
 		message := "Status Code 503: Service Unavailable.\n\n" +
 			"This endpoint is currently unavailable as the server cannot handle the request. Please try again later or consider supporting the project by buying me a coffee. Your support helps keep this service running.\n\n" +
 			"Support the project by buying me a coffee at: https://www.buymeacoffee.com/trsnaqe"
-		encoder := json.NewEncoder(w)
-		err := encoder.Encode(message)
-		if err != nil {
-			http.Error(w, "Failed to encode games", http.StatusInternalServerError)
-		}
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte(message))
 		return
 	}
 

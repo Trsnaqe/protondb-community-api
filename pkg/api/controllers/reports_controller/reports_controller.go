@@ -160,7 +160,10 @@ func GetReportsByQueryHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if title != "" {
-
+		if len(title) < 5 {
+			http.Error(w, "Title query must be at least 5 characters long ", http.StatusBadRequest)
+			return
+		}
 		reports, err = reports_service.GetReportsByTitleSearch(title, versioned, version, precision)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to retrieve reports: %v", err), http.StatusInternalServerError)

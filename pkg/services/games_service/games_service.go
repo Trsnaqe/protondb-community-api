@@ -71,10 +71,6 @@ func GetGameByQuery(appId string, title string, precision float64) ([]models.Gam
 	}
 
 	if title != "" {
-		title = strings.ToLower(title)
-		if len(title) < 5 {
-			return nil, fmt.Errorf("title parameter must be at least 5 characters long")
-		}
 		cursor, err := storage.SearchGameByTitle(title, precision)
 		if err != nil {
 			return nil, err

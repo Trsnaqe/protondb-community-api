@@ -62,6 +62,10 @@ func SearchGameByTitleHandler(w http.ResponseWriter, r *http.Request) {
 			precision = float64(parsedPrecision)
 		case "title":
 			title = strings.ToLower(values[0])
+			if len(title) < 5 {
+				http.Error(w, "Title query must be at least 5 characters long ", http.StatusBadRequest)
+				return
+			}
 		}
 	}
 
@@ -138,6 +142,10 @@ func GetGameByQueryHandler(w http.ResponseWriter, r *http.Request) {
 			appId = strings.ToLower(values[0])
 		case "title":
 			title = strings.ToLower(values[0])
+			if len(title) < 5 {
+				http.Error(w, "Title query must be at least 5 characters long ", http.StatusBadRequest)
+				return
+			}
 		case "precision":
 			parsedPrecision, err := strconv.ParseFloat(values[0], 32)
 			if err != nil {

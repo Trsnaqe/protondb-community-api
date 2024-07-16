@@ -89,6 +89,10 @@ func GetReportsByGameIDHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to retrieve reports: %v", err), http.StatusInternalServerError)
 		return
 	}
+	if len(reports) == 0 {
+		http.Error(w, "No reports found for the game", http.StatusNotFound)
+		return
+	}
 
 	versioned := strings.ToLower(r.URL.Query().Get("versioned"))
 	if versioned == "true" || versioned == "1" {
@@ -158,6 +162,11 @@ func GetReportsByQueryHandler(w http.ResponseWriter, r *http.Request) {
 
 		w.WriteHeader(http.StatusServiceUnavailable)
 		w.Write([]byte(message))
+		return
+	}
+
+	if len(reports) == 0 {
+		http.Error(w, "No reports found matching the query", http.StatusNotFound)
 		return
 	}
 

@@ -19,6 +19,10 @@ func GetAllGamesHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Failed to retrieve games", http.StatusInternalServerError)
 			return
 		}
+		if(len(games) == 0) {
+			http.Error(w, "No games found", http.StatusNotFound)
+			return
+		}
 
 		encoder := json.NewEncoder(w)
 		err = encoder.Encode(games)
@@ -47,6 +51,10 @@ func SearchGameByTitleHandler(w http.ResponseWriter, r *http.Request) {
 	games, err := games_service.SearchGameByTitle(query)
 	if err != nil {
 		http.Error(w, "Failed to search games by title", http.StatusInternalServerError)
+		return
+	}
+	if len(games) == 0 {
+		http.Error(w, "No games found matching the query", http.StatusNotFound)
 		return
 	}
 

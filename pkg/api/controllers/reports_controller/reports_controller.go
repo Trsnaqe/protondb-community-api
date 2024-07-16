@@ -142,8 +142,8 @@ func GetReportsByQueryHandler(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "Invalid precision value", http.StatusBadRequest)
 				return
 			}
-			if parsedPrecision < 0 || parsedPrecision > 2 {
-				http.Error(w, "Precision value must be between 0 and 2", http.StatusBadRequest)
+			if parsedPrecision < 0 {
+				http.Error(w, "Precision value must be higher than 0", http.StatusBadRequest)
 				return
 			}
 			precision = float64(parsedPrecision)

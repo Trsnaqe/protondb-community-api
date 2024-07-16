@@ -178,9 +178,15 @@ func CountV2Reports() (int64, error) {
 }
 
 // search game by title and get its reports
-func GetReportsOfMatchedGamesByTitle(title string, versioned bool, version string) (*mongo.Cursor, error) {
-	filter := bson.M{"title": bson.M{"$regex": title, "$options": "i"}}
-	cursor, err := gamesCollection.Find(context.Background(), filter)
+func GetReportsOfMatchedGamesByTitle(title string, versioned bool, version string, precision float64) (*mongo.Cursor, error) {
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.D{{Key: "$text", Value: bson.D{{Key: "$search", Value: title}}}}}},
+		{{Key: "$addFields", Value: bson.D{{Key: "score", Value: bson.D{{Key: "$meta", Value: "textScore"}}}}}},
+		{{Key: "$match", Value: bson.D{{Key: "score", Value: bson.D{{Key: "$gte", Value: precision}}}}}},
+		{{Key: "$sort", Value: bson.D{{Key: "score", Value: -1}}}},
+	}
+
+	cursor, err := gamesCollection.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -202,17 +208,15 @@ func GetReportsOfMatchedGamesByTitle(title string, versioned bool, version strin
 		gameIDs = append(gameIDs, game.ID)
 	}
 
-	reportsFilter := bson.M{
-		"_id": bson.M{"$in": gameIDs},
-	}
+	reportsFilter := bson.M{"_id": bson.M{"$in": gameIDs}}
 
 	if version == "V1" || version == "V2" {
 		reportsFilter["report_version"] = version
 	}
 
-	options := options.Find().SetProjection(bson.M{"reports": 1}) // Adjust projection as needed
+	findOptions := options.Find().SetProjection(bson.M{"reports": 1})
 
-	reportsCursor, err := reportsCollection.Find(context.Background(), reportsFilter, options)
+	reportsCursor, err := reportsCollection.Find(context.Background(), reportsFilter, findOptions)
 	if err != nil {
 		return nil, err
 	}

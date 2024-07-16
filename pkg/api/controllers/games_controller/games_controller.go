@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/trsnaqe/protondb-api/pkg/constants"
 	"github.com/trsnaqe/protondb-api/pkg/services/games_service"
 )
 
@@ -41,14 +43,34 @@ func GetAllGamesHandler(w http.ResponseWriter, r *http.Request) {
 // Endpoint to search games by title.
 func SearchGameByTitleHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	var title string
+	precision := constants.DEFAULT_SEARCH_PRECISION
 
-	query := r.URL.Query().Get("title")
-	if query == "" {
+	for key, values := range r.URL.Query() {
+		lowerKey := strings.ToLower(key)
+		switch lowerKey {
+		case "precision":
+			parsedPrecision, err := strconv.ParseFloat(values[0], 32)
+			if err != nil {
+				http.Error(w, "Invalid precision value", http.StatusBadRequest)
+				return
+			}
+			if parsedPrecision < 0 || parsedPrecision > 2 {
+				http.Error(w, "Precision value must be between 0 and 2", http.StatusBadRequest)
+				return
+			}
+			precision = float64(parsedPrecision)
+		case "title":
+			title = strings.ToLower(values[0])
+		}
+	}
+
+	if title == "" {
 		http.Error(w, "Title query parameter is required", http.StatusBadRequest)
 		return
 	}
 
-	games, err := games_service.SearchGameByTitle(query)
+	games, err := games_service.SearchGameByTitle(title, precision)
 	if err != nil {
 		http.Error(w, "Failed to search games by title", http.StatusInternalServerError)
 		return
@@ -107,6 +129,7 @@ func GetGameByQueryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var appId, title string
+	precision := constants.DEFAULT_SEARCH_PRECISION
 
 	for key, values := range r.URL.Query() {
 		lowerKey := strings.ToLower(key)
@@ -115,6 +138,17 @@ func GetGameByQueryHandler(w http.ResponseWriter, r *http.Request) {
 			appId = strings.ToLower(values[0])
 		case "title":
 			title = strings.ToLower(values[0])
+		case "precision":
+			parsedPrecision, err := strconv.ParseFloat(values[0], 32)
+			if err != nil {
+				http.Error(w, "Invalid precision value", http.StatusBadRequest)
+				return
+			}
+			if parsedPrecision < 0 || parsedPrecision > 2 {
+				http.Error(w, "Precision value must be between 0 and 2", http.StatusBadRequest)
+				return
+			}
+			precision = float64(parsedPrecision)
 		}
 	}
 
@@ -140,7 +174,7 @@ func GetGameByQueryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	games, err := games_service.GetGameByQuery(appId, title)
+	games, err := games_service.GetGameByQuery(appId, title, precision)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

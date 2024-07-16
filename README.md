@@ -59,9 +59,9 @@ The API will now be up and running, and you can start making requests to the ava
 
 - `/api/stats (GET)`: Get stats of the API. This endpoint provides information about API usage, response times, and the time remaining for the next automatic data update.
 
-- `/api/v2/games`: Get games endpoint. Supports query in v2. If no query is present gets all the games. Query options: [gameid|game_id|appid|app_id] to get game with id. [title] to search game by title.  If both are present, appid supersedes.
+- `/api/v2/games`: Get games endpoint. Supports query in v2. If no query is present gets all the games. Query options: [gameid|game_id|appid|app_id] to get game with id. [title] to search game by title, use [precision] to increase or decrease matching accuracy, value should be between 0 and 2. If both title and appid are present, appid supersedes.
 
-- `/api/v2/reports`: Get reports endpoint. Supports query in v2. If no query is present gets all the reports. Query options: [gameid|game_id|appid|app_id] to get game with id. [title] to search game by title.  If both are present, appid supersedes. [versioned] to get the reports with metadata. [version] 1 or 2 to filter by report versions.
+- `/api/v2/reports`: Get reports endpoint. Supports query in v2. If no query is present gets all the reports. Query options: [gameid|game_id|appid|app_id] to get game with id. [title] to search game by title, use [precision] to increase or decrease matching accuracy, value should be between 0 and 2. If both title and appid are present, appid supersedes. [versioned] to get the reports with metadata. [version] 1 or 2 to filter by report versions.
 
 ## Contributing
 

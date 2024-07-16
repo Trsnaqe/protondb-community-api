@@ -52,8 +52,8 @@ func GetReportsByGameID(gameID string, versioned bool, version string) ([]interf
 }
 
 // search by title and get its reports with versioned version etc
-func GetReportsByTitleSearch(title string, versioned bool, version string) ([]interface{}, error) {
-	games, err := games_service.SearchGameByTitle(title)
+func GetReportsByTitleSearch(title string, versioned bool, version string, precision float64) ([]interface{}, error) {
+	games, err := games_service.SearchGameByTitle(title, precision)
 	if err != nil {
 		return nil, err
 	}

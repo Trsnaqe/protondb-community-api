@@ -31,8 +31,8 @@ func GetAllGames() ([]models.Game, error) {
 	return games, nil
 }
 
-func SearchGameByTitle(title string) ([]models.Game, error) {
-	cursor, err := storage.SearchGameByTitle(title)
+func SearchGameByTitle(title string, precision float64) ([]models.Game, error) {
+	cursor, err := storage.SearchGameByTitle(title, precision)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func GetGameByAppID(gameID string) (*models.Game, error) {
 	return game, nil
 }
 
-func GetGameByQuery(appId string, title string) ([]models.Game, error) {
+func GetGameByQuery(appId string, title string, precision float64) ([]models.Game, error) {
 	ctx := context.TODO()
 
 	if appId != "" {
@@ -75,7 +75,7 @@ func GetGameByQuery(appId string, title string) ([]models.Game, error) {
 		if len(title) < 5 {
 			return nil, fmt.Errorf("title parameter must be at least 5 characters long")
 		}
-		cursor, err := storage.SearchGameByTitle(title)
+		cursor, err := storage.SearchGameByTitle(title, precision)
 		if err != nil {
 			return nil, err
 		}

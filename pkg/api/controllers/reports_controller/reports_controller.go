@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/trsnaqe/protondb-api/pkg/constants"
 	"github.com/trsnaqe/protondb-api/pkg/models"
 	"github.com/trsnaqe/protondb-api/pkg/services/reports_service"
 	"github.com/trsnaqe/protondb-api/pkg/storage"
@@ -115,6 +117,7 @@ func GetReportsByQueryHandler(w http.ResponseWriter, r *http.Request) {
 
 	var appId, version, title string
 	var versioned bool
+	precision := constants.DEFAULT_SEARCH_PRECISION
 
 	queryParams := r.URL.Query()
 	for key, values := range queryParams {
@@ -133,6 +136,17 @@ func GetReportsByQueryHandler(w http.ResponseWriter, r *http.Request) {
 			case "2":
 				version = "V2"
 			}
+		case "precision":
+			parsedPrecision, err := strconv.ParseFloat(values[0], 32)
+			if err != nil {
+				http.Error(w, "Invalid precision value", http.StatusBadRequest)
+				return
+			}
+			if parsedPrecision < 0 || parsedPrecision > 2 {
+				http.Error(w, "Precision value must be between 0 and 2", http.StatusBadRequest)
+				return
+			}
+			precision = float64(parsedPrecision)
 		}
 	}
 	if appId != "" {
@@ -146,7 +160,8 @@ func GetReportsByQueryHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if title != "" {
-		reports, err = reports_service.GetReportsByTitleSearch(title, versioned, version)
+
+		reports, err = reports_service.GetReportsByTitleSearch(title, versioned, version, precision)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to retrieve reports: %v", err), http.StatusInternalServerError)
 			return

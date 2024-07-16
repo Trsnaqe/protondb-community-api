@@ -148,9 +148,15 @@ func ChangeTitle(gameID primitive.ObjectID, newTitle string) error {
 }
 
 // search game bby titles
-func SearchGameByTitle(title string) (*mongo.Cursor, error) {
-	filter := bson.M{"title": bson.M{"$regex": title, "$options": "i"}}
-	cursor, err := gamesCollection.Find(context.Background(), filter)
+func SearchGameByTitle(title string, precision float64) (*mongo.Cursor, error) {
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.D{{Key: "$text", Value: bson.D{{Key: "$search", Value: title}}}}}},
+		{{Key: "$addFields", Value: bson.D{{Key: "score", Value: bson.D{{Key: "$meta", Value: "textScore"}}}}}},
+		{{Key: "$match", Value: bson.D{{Key: "score", Value: bson.D{{Key: "$gte", Value: precision}}}}}},
+		{{Key: "$sort", Value: bson.D{{Key: "score", Value: -1}}}},
+	}
+
+	cursor, err := gamesCollection.Aggregate(context.Background(), pipeline)
 	return cursor, err
 }
 

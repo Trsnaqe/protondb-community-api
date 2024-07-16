@@ -12,8 +12,8 @@ func ListAPIEndpointsHandler(w http.ResponseWriter, r *http.Request) {
 		"/api/reports (GET): Retrieve reports, add ?versioned=true for versioned data*",
 		"/api/reports/{gameId} (GET): Get reports by gameId, add ?versioned=true for versioned data",
 		"/api/stats (GET): Get stats of the API",
-		"/api/v2/games (GET): Get games by query, add ?title or appid to filter by title or appid respectively. Appid supersedes the title query",
-		"/api/v2/reports (GET): Get reports by query, add ?versioned=true for versioned data, version= 1 or 2 to filter by version; title or appid to filter by title or appid respectively. Appid supersedes the title query",
+		"/api/v2/games (GET): Get games by query, add ?title or appid to search by title or appid respectively. Title text search accuracy can be adjusted by &precision=(max 2). Appid supersedes the title query",
+		"/api/v2/reports (GET): Get reports by query, add ?versioned=true for versioned data, version= 1 or 2 to filter by version; title or appid to search by title or appid respectively.Title text search accuracy can be adjusted by &precision=(max 2). Appid supersedes the title query",
 	}
 	response := "Available endpoints in the protondb.solidet.com:\n\n"
 
